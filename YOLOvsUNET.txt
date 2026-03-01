@@ -1,0 +1,22 @@
+U-GNET 
+Requires more computational resources for training and inference.
+Requires optimization (TensorFlow Lite, ONNX Runtime, pruning). May need external accelerato
+
+EFFNet model
+
+
+Data Augmentation: Techniques like mosaic augmentation, flipping, scaling, and color jittering improve generalization
+
+Augmentation (Mosaic, MixUp, GridMask, rotations, brightness changes) can stretch smaller datasets, but real diversity is still critical.
+YOLO
+Easier to deploy — YOLO models already have lightweight versions for edge devices.
+
+Faster, but only bounding boxes — not precise enough for surgical segmentation. Could serve as a quick detector before U-Net refinement.
+
+
+to train YOLO on Google Colab Models"https://colab.research.google.com/github/EdjeElectronics/Train-and-Deploy-YOLO-Models/blob/main/Train_YOLO_Models.ipynb"
+
+###########################################################
+Tracking: Combine YOLO with tracking algorithms (e.g., DeepSORT, SORT) to maintain object identity across frames.
+Spatio-temporal models: Some research integrates YOLO with recurrent layers (LSTMs, GRUs) or optical flow to leverage motion cues.
+Efficiency: YOLO’s speed makes it well-suited for real-time video inference, even on resource-limited devices like Raspberry Pi (using YOLOv5n or YOLOv8n).
