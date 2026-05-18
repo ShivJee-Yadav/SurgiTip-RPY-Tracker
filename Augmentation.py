@@ -3,32 +3,55 @@ import albumentations as A
 
 # (Use your existing augment_pipeline but change KeypointParams and BboxParams there:)
 augment_pipeline = A.Compose(
-    [
-        A.GridDistortion(num_steps=5, distort_limit=0.3, p=0.5),
-        A.HorizontalFlip(p=0.5),
-        A.Affine(scale=(0.9, 1.1), rotate=(-15, 15), shear=(-10, 10),
-                 translate_percent=(0.0625, 0.0625), fit_output=False, p=0.5),
-        A.Perspective(scale=(0.05, 0.1), keep_size=True, p=0.2),
-        A.ElasticTransform(alpha=100, sigma=8, p=0.2),
-        A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.3),
-        A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.3),
-        A.OneOf([
-            A.GaussianBlur(blur_limit=(3, 7), p=1.0),
-            A.GaussNoise(std_range=(0.02, 0.08), p=1.0),
-            A.ISONoise(color_shift=(0.01, 0.05), intensity=(0.1, 0.5), p=1.0),
-            A.MotionBlur(blur_limit=3, p=1.0),
-            A.Blur(blur_limit=3, p=1.0),
-        ], p=0.8),
-        A.ToGray(p=0.5),
-        A.ChannelShuffle(p=0.4),
-        A.D4(p=0.6),
+   [
+    # 2. MULTI-RESOLUTION RESIZING 
+    A.OneOf([
+        A.Resize(width=416, height=416, p=1.0),
+        A.Resize(width=640, height=640, p=1.0),
+        A.Resize(width=1280, height=1280, p=1.0)
+    ], p=0.5),
+
+    # 3. GEOMETRIC TRANSFORMS
+    A.HorizontalFlip(p=0.5),
+    A.VerticalFlip(p=0.3),
+    A.Affine(
+        scale=(0.8, 1.2),      
+        rotate=(-45, 45),      
+        shear=(-10, 10), 
+        border_mode=cv2.BORDER_CONSTANT,  # FIXED: Changed 'mode' to 'border_mode'
+        p=0.6
+    ),
+
+    # 4. SURGICAL ARTIFACTS
+    A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
+    A.ColorJitter(brightness=0.3, contrast=0.2, saturation=0.2, hue=0.1, p=0.4),
+    A.RandomShadow(
+        num_shadows_range=(1, 2),        # FIXED: Changed to 'num_shadows_range' tuple
+        shadow_dimension=5, 
+        p=0.4
+    ),
+    
+    # AdvancedBlur uses blur_range, sigma_x_range, sigma_y_range natively
+    A.AdvancedBlur(blur_range=(3, 7), p=0.3), 
+
+    # 5. CAMERA & ENVIRONMENT NOISE
+    A.OneOf([
+        A.MotionBlur(blur_limit=5, p=1.0),       
+        A.GaussianBlur(blur_limit=(3, 5), p=1.0),   
+        A.GaussNoise(std_range=(0.05, 0.2), p=1.0), # FIXED: Changed 'var_limit' to 'std_range' (fraction of max value)
+    ], p=0.6),
+
+    A.ImageCompression(
+        quality_range=(40, 100),         # FIXED: Changed lower/upper to 'quality_range' tuple
+        p=0.4
+    ),
     ],
     # Use COCO absolute-pixel bbox format for augmentation
     bbox_params=A.BboxParams(format='coco', label_fields=['bbox_class_labels'],
                              min_area=0, min_visibility=0),
     # Keypoints must be passed as pixel (x,y)
     keypoint_params=A.KeypointParams(format='xy', label_fields=['keypoint_class_labels', 'keypoint_visibilities'],
-                                     remove_invisible=False)
+                                     remove_invisible=True)
 )
 
 
